@@ -116,12 +116,21 @@ class ImageSubscriber : public rclcpp::Node
 			printf("Running DMA transfer with specified memory.\n");
 			Reserved_Mem pmem;
 			AXIDMAController dma(UIO_DMA_N, 0x10000);
+			uint32_t *u_buff = (uint32_t *)malloc(LENGTH);
+			if (u_buff == NULL)
+			{
+				printf("could not allocate user buffer\n");
+				return -1;
+			}
+
+			for (int i = 0; i < LENGTH / sizeof(uint32_t); i++)
+				u_buff[i] = i * 2;
 			printf("User memory reserved and filled\n");
 			
 			// Transfer the data to the reserved memory
 			tmp = 0;
 			start_timer();
-			pmem.transfer(data_stream, P_OFFSET, LENGTH);
+			pmem.transfer(u_buff, P_OFFSET, LENGTH);
 			total_t += stop_timer();
 			std::cout << "Data transfered to reserved memory: " << total_t << "ms [" << (float)LENGTH / 1000000. << "MB]" << std::endl;
 			
